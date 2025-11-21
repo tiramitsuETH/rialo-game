@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jumping Game</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const JumpingGame = () => {
+          const [playerY, setPlayerY] = useState(300);
+          const [obstacles, setObstacles] = useState([]);
+          const [score, setScore] = useState(0);
+          const [gameOver, setGameOver] = useState(false);
+          const [isJumping, setIsJumping] = useState(false);
+          const [gameStarted, setGameStarted] = useState(false);
+          
+          const velocityRef = useRef(0);
+          const gameLoopRef = useRef(null);
+          
+          const GRAVITY = 0.6;
+          const JUMP_STRENGTH = -12;
+          const GROUND_Y = 300;
+          const PLAYER_SIZE = 50;
+          const OBSTACLE_WIDTH = 40;
+          const OBSTACLE_HEIGHT = 60;
+
+          const jump = () => {
+            if (!isJumping && gameStarted && !gameOver) {
+              setIsJumping(true);
+              velocityRef.current = JUMP_STRENGTH;
+            }
+          };
+
+          const startGame = () => {
+            setGameStarted(true);
+            setGameOver(false);
+            setScore(0);
+            setPlayerY(GROUND_Y);
+            setObstacles([]);
+            velocityRef.current = 0;
+          };
+
+          useEffect(() => {
+            const handleKeyPress = (e) => {
+              if (e.code === 'Space') {
+                e.preventDefault();
+                if (!gameStarted || gameOver) {
+                  startGame();
+                } else {
+                  jump();
+                }
+              }
+            };
+
+            window.addEventListener('keydown', handleKeyPress);
+            return () => window.removeEventListener('keydown', handleKeyPress);
+          }, [gameStarted, isJumping, gameOver]);
+
+          useEffect(() => {
+            if (!gameStarted || gameOver) return;
+
+            gameLoopRef.current = setInterval(() => {
+              velocityRef.current += GRAVITY;
+              setPlayerY(prev => {
+                const newY = prev + velocityRef.current;
+                if (newY >= GROUND_Y) {
+                  setIsJumping(false);
+                  velocityRef.current = 0;
+                  return GROUND_Y;
+                }
+                return newY;
+              });
+
+              setObstacles(prev => {
+                const updated = prev
+                  .map(obs => ({ ...obs, x: obs.x - 5 }))
+                  .filter(obs => obs.x > -OBSTACLE_WIDTH);
+
+                if (updated.length === 0 || updated[updated.length - 1].x < 500) {
+                  if (Math.random() < 0.02) {
+                    updated.push({ x: 800, id: Date.now() });
+                  }
+                }
+
+                return updated;
+              });
+
+              setObstacles(prev => {
+                for (let obs of prev) {
+                  if (
+                    obs.x < 100 + PLAYER_SIZE &&
+                    obs.x + OBSTACLE_WIDTH > 100 &&
+                    playerY + PLAYER_SIZE > GROUND_Y + 50 - OBSTACLE_HEIGHT
+                  ) {
+                    setGameOver(true);
+                  }
+                  
+                  if (obs.x + OBSTACLE_WIDTH < 100 && !obs.scored) {
+                    obs.scored = true;
+                    setScore(s => s + 1);
+                  }
+                }
+                return prev;
+              });
+            }, 1000 / 60);
+
+            return () => clearInterval(gameLoopRef.current);
+          }, [gameStarted, gameOver, playerY]);
+
+          return (
+            <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-sky-300 to-sky-100">
+              <div className="relative">
+                <div 
+                  className="relative overflow-hidden border-4 border-gray-800 rounded-lg shadow-2xl bg-sky-200"
+                  style={{ width: '800px', height: '450px' }}
+                  onClick={() => {
+                    if (!gameStarted || gameOver) startGame();
+                    else jump();
+                  }}
+                >
+                  <div className="absolute bottom-0 w-full h-16 bg-gradient-to-t from-green-600 to-green-500"></div>
+                  
+                  <div className="absolute top-10 left-20 w-24 h-12 bg-white rounded-full opacity-70"></div>
+                  <div className="absolute top-20 right-40 w-32 h-14 bg-white rounded-full opacity-60"></div>
+                  <div className="absolute top-8 right-100 w-28 h-12 bg-white rounded-full opacity-50"></div>
+                  
+                  <div className="absolute top-8 right-12 w-16 h-16 bg-yellow-300 rounded-full shadow-lg"></div>
+
+                  <div 
+                    className="absolute w-full h-1 bg-green-800"
+                    style={{ top: `${GROUND_Y + 50}px` }}
+                  ></div>
+
+                  <div
+                    className="absolute transition-none"
+                    style={{
+                      left: '100px',
+                      top: `${playerY}px`,
+                      width: `${PLAYER_SIZE}px`,
+                      height: `${PLAYER_SIZE}px`,
+                    }}
+                  >
+                    <img 
+                      src="character.png" 
+                      alt="Character"
+                      className="w-full h-full object-contain"
+                      style={{ imageRendering: 'crisp-edges' }}
+                    />
+                  </div>
+
+                  {obstacles.map(obs => (
+                    <div
+                      key={obs.id}
+                      className="absolute"
+                      style={{
+                        left: `${obs.x}px`,
+                        top: `${GROUND_Y + 50 - OBSTACLE_HEIGHT}px`,
+                        width: `${OBSTACLE_WIDTH}px`,
+                        height: `${OBSTACLE_HEIGHT}px`,
+                      }}
+                    >
+                      <div className="w-full h-full bg-red-500 rounded border-2 border-red-700 flex items-center justify-center text-xl">
+                        🌵
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="absolute top-4 left-4 text-3xl font-bold text-gray-800 bg-white bg-opacity-70 px-4 py-2 rounded-lg">
+                    Score: {score}
+                  </div>
+
+                  {(!gameStarted || gameOver) && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                      <div className="bg-white p-8 rounded-xl text-center shadow-2xl">
+                        <h2 className="text-4xl font-bold mb-4 text-gray-800">
+                          {gameOver ? '🎮 Game Over!' : '🎯 Jump Game'}
+                        </h2>
+                        {gameOver && (
+                          <p className="text-2xl mb-4 text-gray-600">Score: {score}</p>
+                        )}
+                        <button
+                          onClick={startGame}
+                          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-xl transition-colors"
+                        >
+                          {gameOver ? 'Main Lagi' : 'Mulai Game'}
+                        </button>
+                        <p className="mt-4 text-gray-600">
+                          Tekan SPASI atau Klik untuk lompat
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 text-center text-gray-700 bg-white p-4 rounded-lg shadow">
+                  <p className="font-semibold">Cara Main:</p>
+                  <p>Tekan <span className="bg-gray-200 px-2 py-1 rounded">SPASI</span> atau <span className="bg-gray-200 px-2 py-1 rounded">KLIK</span> untuk lompat</p>
+                  <p className="text-sm mt-2 text-gray-600">Hindari rintangan dan kumpulkan skor sebanyak-banyaknya!</p>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        ReactDOM.render(<JumpingGame />, document.getElementById('root'));
+    </script>
+</body>
+</html>

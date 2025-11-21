@@ -1,12 +1,12 @@
-# 🎮 Rialo Jump Game
+#  Rialo Jump Game
 
 A fun and addictive endless runner jump game built with React! Test your reflexes and see how high you can score!
 
 ![Game Screenshot](screenshot.png)
 
-## 🎯 Play Now
+##  Play Now
 
-**[🕹️ Play Rialo Jump Game Here](https://tiramitsueth.github.io/rialo-game/)**
+**[ Play Rialo Jump Game Here](https://tiramitsueth.github.io/rialo-game/)**
 
 ---
 
@@ -14,16 +14,16 @@ A fun and addictive endless runner jump game built with React! Test your reflexe
 
 Rialo Jump Game is a simple yet challenging browser-based game where you control a character that must jump over obstacles. The game gets progressively harder as your score increases!
 
-## ✨ Features
+##  Features
 
-- 🎨 Beautiful sky-themed graphics
-- 🎮 Simple one-button gameplay
-- 📊 Score tracking system
-- 🔄 Endless gameplay
-- 📱 Responsive design
-- ⌨️ Keyboard and mouse support
+-  Beautiful sky-themed graphics
+-  Simple one-button gameplay
+-  Score tracking system
+-  Endless gameplay
+-  Responsive design
+-  Keyboard and mouse support
 
-## 🎮 How to Play
+##  How to Play
 
 ### Controls
 - Press **SPACE** bar to jump
@@ -43,4 +43,4 @@ Rialo Jump Game is a simple yet challenging browser-based game where you control
 
 ---
 
-**Happy Gaming! 🎮**
+**Happy Gaming! **
